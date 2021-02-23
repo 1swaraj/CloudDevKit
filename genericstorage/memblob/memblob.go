@@ -14,27 +14,27 @@ import (
 	"sync"
 	"time"
 
-	"genericstoragesdk/blob"
-	"genericstoragesdk/blob/driver"
+	"genericstoragesdk/genericstorage"
+	"genericstoragesdk/genericstorage/driver"
 	"genericstoragesdk/gcerrors"
 )
 
 const defaultPageSize = 1000
 
 var (
-	errNotFound       = errors.New("blob not found")
+	errNotFound       = errors.New("genericstorage not found")
 	errNotImplemented = errors.New("not implemented")
 )
 
 func init() {
-	blob.DefaultURLMux().RegisterBucket(Scheme, &URLOpener{})
+	genericstorage.DefaultURLMux().RegisterBucket(Scheme, &URLOpener{})
 }
 
 const Scheme = "mem"
 
 type URLOpener struct{}
 
-func (*URLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bucket, error) {
+func (*URLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*genericstorage.Bucket, error) {
 	for param := range u.Query() {
 		return nil, fmt.Errorf("open bucket %v: invalid query parameter %q", u, param)
 	}
@@ -59,8 +59,8 @@ func openBucket(_ *Options) driver.Bucket {
 	}
 }
 
-func OpenBucket(opts *Options) *blob.Bucket {
-	return blob.NewBucket(openBucket(opts))
+func OpenBucket(opts *Options) *genericstorage.Bucket {
+	return genericstorage.NewBucket(openBucket(opts))
 }
 
 func (b *bucket) Close() error {

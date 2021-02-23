@@ -1,19 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 package main
 
 import (
@@ -25,21 +9,13 @@ import (
 	"os"
 
 	"github.com/google/subcommands"
-	"genericstoragesdk/blob"
+	"genericstoragesdk/genericstorage"
 
-
-	_ "genericstoragesdk/blob/fileblob"
-	_ "genericstoragesdk/blob/gcsblob"
-	_ "genericstoragesdk/blob/s3blob"
+	// Import the genericstorage driver packages we want to be able to open.
+	_ "genericstoragesdk/genericstorage/fileblob"
+	_ "genericstoragesdk/genericstorage/gcsblob"
+	_ "genericstoragesdk/genericstorage/s3blob"
 )
-
-const helpSuffix = `
-
-  See https:
-  Go CDK URLs, and sub-packages under genericstoragesdk/blob
-  (https:
-  for details on the blob.Bucket URL format.
-`
 
 func main() {
 	os.Exit(run())
@@ -51,7 +27,7 @@ func run() int {
 	subcommands.Register(&listCmd{}, "")
 	subcommands.Register(&uploadCmd{}, "")
 	log.SetFlags(0)
-	log.SetPrefix("gocdk-blob: ")
+	log.SetPrefix("gen-storage: ")
 	flag.Parse()
 	return int(subcommands.Execute(context.Background()))
 }
@@ -59,14 +35,14 @@ func run() int {
 type downloadCmd struct{}
 
 func (*downloadCmd) Name() string     { return "download" }
-func (*downloadCmd) Synopsis() string { return "Output a blob to stdout" }
+func (*downloadCmd) Synopsis() string { return "Output a genericstorage to stdout" }
 func (*downloadCmd) Usage() string {
 	return `download <bucket URL> <key>
 
-  Read the blob <key> from <bucket URL> and write it to stdout.
+  Read the genericstorage <key> from <bucket URL> and write it to stdout.
 
   Example:
-    gocdk-blob download gs:
+    gen-storage download gs://mybucket my/gcs/file > foo.txt`
 }
 
 func (*downloadCmd) SetFlags(_ *flag.FlagSet) {}
@@ -79,15 +55,15 @@ func (*downloadCmd) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface
 	bucketURL := f.Arg(0)
 	blobKey := f.Arg(1)
 
-	
-	bucket, err := blob.OpenBucket(ctx, bucketURL)
+	// Open a *genericstorage.Bucket using the bucketURL.
+	bucket, err := genericstorage.OpenBucket(ctx, bucketURL)
 	if err != nil {
 		log.Printf("Failed to open bucket: %v\n", err)
 		return subcommands.ExitFailure
 	}
 	defer bucket.Close()
 
-	
+	// Open a *genericstorage.Reader for the genericstorage at blobKey.
 	reader, err := bucket.NewReader(ctx, blobKey, nil)
 	if err != nil {
 		log.Printf("Failed to read %q: %v\n", blobKey, err)
@@ -95,7 +71,7 @@ func (*downloadCmd) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface
 	}
 	defer reader.Close()
 
-	
+	// Copy the data.
 	_, err = io.Copy(os.Stdout, reader)
 	if err != nil {
 		log.Printf("Failed to copy data: %v\n", err)
@@ -117,7 +93,7 @@ func (*listCmd) Usage() string {
   List the blobs in <bucket URL>.
 
   Example:
-    gocdk-blob ls -p "subdir/" gs:
+    gen-storage ls -p "subdir/" gs://mybucket`
 }
 
 func (cmd *listCmd) SetFlags(f *flag.FlagSet) {
@@ -132,15 +108,15 @@ func (cmd *listCmd) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface
 	}
 	bucketURL := f.Arg(0)
 
-
-	bucket, err := blob.OpenBucket(ctx, bucketURL)
+	// Open a *genericstorage.Bucket using the bucketURL.
+	bucket, err := genericstorage.OpenBucket(ctx, bucketURL)
 	if err != nil {
 		log.Printf("Failed to open bucket: %v\n", err)
 		return subcommands.ExitFailure
 	}
 	defer bucket.Close()
 
-	opts := blob.ListOptions{
+	opts := genericstorage.ListOptions{
 		Prefix:    cmd.prefix,
 		Delimiter: cmd.delimiter,
 	}
@@ -162,14 +138,14 @@ func (cmd *listCmd) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface
 type uploadCmd struct{}
 
 func (*uploadCmd) Name() string     { return "upload" }
-func (*uploadCmd) Synopsis() string { return "Upload a blob from stdin" }
+func (*uploadCmd) Synopsis() string { return "Upload a genericstorage from stdin" }
 func (*uploadCmd) Usage() string {
 	return `upload <bucket URL> <key>
 
-  Read from stdin and write to the blob <key> in <bucket URL>.
+  Read from stdin and write to the genericstorage <key> in <bucket URL>.
 
   Example:
-    cat foo.txt | gocdk-blob upload gs:
+    cat foo.txt | gen-storage upload gs://mybucket my/gcs/file`
 }
 
 func (*uploadCmd) SetFlags(_ *flag.FlagSet) {}
@@ -182,15 +158,15 @@ func (*uploadCmd) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}
 	bucketURL := f.Arg(0)
 	blobKey := f.Arg(1)
 
-	
-	bucket, err := blob.OpenBucket(ctx, bucketURL)
+	// Open a *genericstorage.Bucket using the bucketURL.
+	bucket, err := genericstorage.OpenBucket(ctx, bucketURL)
 	if err != nil {
 		log.Printf("Failed to open bucket: %v\n", err)
 		return subcommands.ExitFailure
 	}
 	defer bucket.Close()
 
-	
+	// Open a *genericstorage.Writer for the genericstorage at blobKey.
 	writer, err := bucket.NewWriter(ctx, blobKey, nil)
 	if err != nil {
 		log.Printf("Failed to write %q: %v\n", blobKey, err)
@@ -203,7 +179,7 @@ func (*uploadCmd) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}
 		}
 	}()
 
-	
+	// Copy the data.
 	_, err = io.Copy(writer, os.Stdin)
 	if err != nil {
 		log.Printf("Failed to copy data: %v\n", err)

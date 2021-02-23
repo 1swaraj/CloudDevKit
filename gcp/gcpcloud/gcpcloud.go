@@ -17,7 +17,7 @@ package gcpcloud
 
 import (
 	"github.com/google/wire"
-	"genericstoragesdk/blob/gcsblob"
+	"genericstoragesdk/genericstorage/gcsblob"
 	"genericstoragesdk/gcp"
 	"genericstoragesdk/server/sdserver"
 )

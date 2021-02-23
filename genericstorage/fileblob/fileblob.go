@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
-	"genericstoragesdk/blob"
-	"genericstoragesdk/blob/driver"
+	"genericstoragesdk/genericstorage"
+	"genericstoragesdk/genericstorage/driver"
 	"genericstoragesdk/gcerrors"
 	"genericstoragesdk/internal/escape"
 	"genericstoragesdk/internal/gcerr"
@@ -28,7 +28,7 @@ import (
 const defaultPageSize = 1000
 
 func init() {
-	blob.DefaultURLMux().RegisterBucket(Scheme, &URLOpener{})
+	genericstorage.DefaultURLMux().RegisterBucket(Scheme, &URLOpener{})
 }
 
 const Scheme = "file"
@@ -37,7 +37,7 @@ type URLOpener struct {
 	Options Options
 }
 
-func (o *URLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bucket, error) {
+func (o *URLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*genericstorage.Bucket, error) {
 	path := u.Path
 
 	if u.Host == "." || os.PathSeparator != '/' {
@@ -118,12 +118,12 @@ func openBucket(dir string, opts *Options) (driver.Bucket, error) {
 	return &bucket{dir: absdir, opts: opts}, nil
 }
 
-func OpenBucket(dir string, opts *Options) (*blob.Bucket, error) {
+func OpenBucket(dir string, opts *Options) (*genericstorage.Bucket, error) {
 	drv, err := openBucket(dir, opts)
 	if err != nil {
 		return nil, err
 	}
-	return blob.NewBucket(drv), nil
+	return genericstorage.NewBucket(drv), nil
 }
 
 func (b *bucket) Close() error {
@@ -665,11 +665,11 @@ func (h *URLSignerHMAC) KeyFromURL(ctx context.Context, sURL *url.URL) (string, 
 
 	exp, err := strconv.ParseInt(q.Get("expiry"), 10, 64)
 	if err != nil || time.Now().Unix() > exp {
-		return "", errors.New("retrieving blob key from URL: key cannot be retrieved")
+		return "", errors.New("retrieving genericstorage key from URL: key cannot be retrieved")
 	}
 
 	if !h.checkMAC(q) {
-		return "", errors.New("retrieving blob key from URL: key cannot be retrieved")
+		return "", errors.New("retrieving genericstorage key from URL: key cannot be retrieved")
 	}
 	return q.Get("obj"), nil
 }

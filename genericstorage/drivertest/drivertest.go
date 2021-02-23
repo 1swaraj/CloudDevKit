@@ -18,8 +18,8 @@ import (
 	"testing"
 	"time"
 
-	"genericstoragesdk/blob"
-	"genericstoragesdk/blob/driver"
+	"genericstoragesdk/genericstorage"
+	"genericstoragesdk/genericstorage/driver"
 	"genericstoragesdk/gcerrors"
 	"genericstoragesdk/internal/escape"
 	"github.com/google/go-cmp/cmp"
@@ -41,9 +41,9 @@ type HarnessMaker func(ctx context.Context, t *testing.T) (Harness, error)
 type AsTest interface {
 	Name() string
 
-	BucketCheck(b *blob.Bucket) error
+	BucketCheck(b *genericstorage.Bucket) error
 
-	ErrorCheck(b *blob.Bucket, err error) error
+	ErrorCheck(b *genericstorage.Bucket, err error) error
 
 	BeforeRead(as func(interface{}) bool) error
 
@@ -55,11 +55,11 @@ type AsTest interface {
 
 	BeforeSign(as func(interface{}) bool) error
 
-	AttributesCheck(attrs *blob.Attributes) error
+	AttributesCheck(attrs *genericstorage.Attributes) error
 
-	ReaderCheck(r *blob.Reader) error
+	ReaderCheck(r *genericstorage.Reader) error
 
-	ListObjectCheck(o *blob.ListObject) error
+	ListObjectCheck(o *genericstorage.ListObject) error
 }
 
 type verifyAsFailsOnNil struct{}
@@ -68,14 +68,14 @@ func (verifyAsFailsOnNil) Name() string {
 	return "verify As returns false when passed nil"
 }
 
-func (verifyAsFailsOnNil) BucketCheck(b *blob.Bucket) error {
+func (verifyAsFailsOnNil) BucketCheck(b *genericstorage.Bucket) error {
 	if b.As(nil) {
 		return errors.New("want Bucket.As to return false when passed nil")
 	}
 	return nil
 }
 
-func (verifyAsFailsOnNil) ErrorCheck(b *blob.Bucket, err error) (ret error) {
+func (verifyAsFailsOnNil) ErrorCheck(b *genericstorage.Bucket, err error) (ret error) {
 	defer func() {
 		if recover() == nil {
 			ret = errors.New("want ErrorAs to panic when passed nil")
@@ -120,21 +120,21 @@ func (verifyAsFailsOnNil) BeforeSign(as func(interface{}) bool) error {
 	return nil
 }
 
-func (verifyAsFailsOnNil) AttributesCheck(attrs *blob.Attributes) error {
+func (verifyAsFailsOnNil) AttributesCheck(attrs *genericstorage.Attributes) error {
 	if attrs.As(nil) {
 		return errors.New("want Attributes.As to return false when passed nil")
 	}
 	return nil
 }
 
-func (verifyAsFailsOnNil) ReaderCheck(r *blob.Reader) error {
+func (verifyAsFailsOnNil) ReaderCheck(r *genericstorage.Reader) error {
 	if r.As(nil) {
 		return errors.New("want Reader.As to return false when passed nil")
 	}
 	return nil
 }
 
-func (verifyAsFailsOnNil) ListObjectCheck(o *blob.ListObject) error {
+func (verifyAsFailsOnNil) ListObjectCheck(o *genericstorage.ListObject) error {
 	if o.As(nil) {
 		return errors.New("want ListObject.As to return false when passed nil")
 	}
@@ -200,7 +200,7 @@ func RunConformanceTests(t *testing.T, newHarness HarnessMaker, asTests []AsTest
 	})
 }
 
-func RunBenchmarks(b *testing.B, bkt *blob.Bucket) {
+func RunBenchmarks(b *testing.B, bkt *genericstorage.Bucket) {
 	b.Run("BenchmarkRead", func(b *testing.B) {
 		benchmarkRead(b, bkt)
 	})
@@ -226,7 +226,7 @@ func testNonexistentBucket(t *testing.T, newHarness HarnessMaker) {
 
 			t.Skip()
 		}
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 		defer b.Close()
 		exists, err := b.IsAccessible(ctx)
 		if err != nil {
@@ -242,7 +242,7 @@ func testNonexistentBucket(t *testing.T, newHarness HarnessMaker) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 		defer b.Close()
 		exists, err := b.IsAccessible(ctx)
 		if err != nil {
@@ -255,7 +255,7 @@ func testNonexistentBucket(t *testing.T, newHarness HarnessMaker) {
 }
 
 func testList(t *testing.T, newHarness HarnessMaker) {
-	const keyPrefix = "blob-for-list"
+	const keyPrefix = "genericstorage-for-list"
 	content := []byte("hello")
 
 	keyForIndex := func(i int) string { return fmt.Sprintf("%s-%d", keyPrefix, i) }
@@ -335,8 +335,8 @@ func testList(t *testing.T, newHarness HarnessMaker) {
 			t.Fatal(err)
 		}
 
-		b := blob.NewBucket(drv)
-		iter := b.List(&blob.ListOptions{Prefix: keyPrefix})
+		b := genericstorage.NewBucket(drv)
+		iter := b.List(&genericstorage.ListOptions{Prefix: keyPrefix})
 		found := iterToSetOfKeys(ctx, t, iter)
 		for i := 0; i < 3; i++ {
 			key := keyForIndex(i)
@@ -401,7 +401,7 @@ func testList(t *testing.T, newHarness HarnessMaker) {
 			t.Fatalf("got\n%v\nwant\n%v\ndiff\n%s", got, want, diff)
 		}
 
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 		defer b.Close()
 		key := page.Objects[0].Key + "a"
 		if err := b.WriteAll(ctx, key, content, nil); err != nil {
@@ -442,7 +442,7 @@ func testList(t *testing.T, newHarness HarnessMaker) {
 			t.Fatalf("got\n%v\nwant\n%v\ndiff\n%s", got, want, diff)
 		}
 
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 		defer b.Close()
 		key := page.Objects[1].Key
 		if err := b.Delete(ctx, key); err != nil {
@@ -477,7 +477,7 @@ func testListWeirdKeys(t *testing.T, newHarness HarnessMaker) {
 		want[keyPrefix+k] = true
 	}
 
-	init := func(t *testing.T) (*blob.Bucket, func()) {
+	init := func(t *testing.T) (*genericstorage.Bucket, func()) {
 		h, err := newHarness(ctx, t)
 		if err != nil {
 			t.Fatal(err)
@@ -487,8 +487,8 @@ func testListWeirdKeys(t *testing.T, newHarness HarnessMaker) {
 			t.Fatal(err)
 		}
 
-		b := blob.NewBucket(drv)
-		iter := b.List(&blob.ListOptions{Prefix: keyPrefix})
+		b := genericstorage.NewBucket(drv)
+		iter := b.List(&genericstorage.ListOptions{Prefix: keyPrefix})
 		found := iterToSetOfKeys(ctx, t, iter)
 		for _, k := range escape.WeirdStrings {
 			key := keyPrefix + k
@@ -505,7 +505,7 @@ func testListWeirdKeys(t *testing.T, newHarness HarnessMaker) {
 	b, done := init(t)
 	defer done()
 
-	iter := b.List(&blob.ListOptions{Prefix: keyPrefix})
+	iter := b.List(&genericstorage.ListOptions{Prefix: keyPrefix})
 	got := iterToSetOfKeys(ctx, t, iter)
 
 	if diff := cmp.Diff(got, want); diff != "" {
@@ -520,8 +520,8 @@ type listResult struct {
 	Sub []listResult
 }
 
-func doList(ctx context.Context, b *blob.Bucket, prefix, delim string, recurse bool) ([]listResult, error) {
-	iter := b.List(&blob.ListOptions{
+func doList(ctx context.Context, b *genericstorage.Bucket, prefix, delim string, recurse bool) ([]listResult, error) {
+	iter := b.List(&genericstorage.ListOptions{
 		Prefix:    prefix,
 		Delimiter: delim,
 	})
@@ -554,7 +554,7 @@ func doList(ctx context.Context, b *blob.Bucket, prefix, delim string, recurse b
 }
 
 func testListDelimiters(t *testing.T, newHarness HarnessMaker) {
-	const keyPrefix = "blob-for-delimiters-"
+	const keyPrefix = "genericstorage-for-delimiters-"
 	content := []byte("hello")
 
 	keys := [][]string{
@@ -749,7 +749,7 @@ func testListDelimiters(t *testing.T, newHarness HarnessMaker) {
 
 	ctx := context.Background()
 
-	init := func(t *testing.T, delim string) (driver.Bucket, *blob.Bucket, func()) {
+	init := func(t *testing.T, delim string) (driver.Bucket, *genericstorage.Bucket, func()) {
 		h, err := newHarness(ctx, t)
 		if err != nil {
 			t.Fatal(err)
@@ -758,10 +758,10 @@ func testListDelimiters(t *testing.T, newHarness HarnessMaker) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 
 		prefix := keyPrefix + delim
-		iter := b.List(&blob.ListOptions{Prefix: prefix})
+		iter := b.List(&genericstorage.ListOptions{Prefix: prefix})
 		found := iterToSetOfKeys(ctx, t, iter)
 		for _, keyParts := range keys {
 			key := prefix + strings.Join(keyParts, delim)
@@ -846,7 +846,7 @@ func testListDelimiters(t *testing.T, newHarness HarnessMaker) {
 	}
 }
 
-func iterToSetOfKeys(ctx context.Context, t *testing.T, iter *blob.ListIterator) map[string]bool {
+func iterToSetOfKeys(ctx context.Context, t *testing.T, iter *genericstorage.ListIterator) map[string]bool {
 	retval := map[string]bool{}
 	for {
 		if item, err := iter.Next(ctx); err == io.EOF {
@@ -861,7 +861,7 @@ func iterToSetOfKeys(ctx context.Context, t *testing.T, iter *blob.ListIterator)
 }
 
 func testRead(t *testing.T, newHarness HarnessMaker) {
-	const key = "blob-for-reading"
+	const key = "genericstorage-for-reading"
 	content := []byte("abcdefghijklmnopqurstuvwxyz")
 	contentSize := int64(len(content))
 
@@ -927,7 +927,7 @@ func testRead(t *testing.T, newHarness HarnessMaker) {
 
 	ctx := context.Background()
 
-	init := func(t *testing.T, skipCreate bool) (*blob.Bucket, func()) {
+	init := func(t *testing.T, skipCreate bool) (*genericstorage.Bucket, func()) {
 		h, err := newHarness(ctx, t)
 		if err != nil {
 			t.Fatal(err)
@@ -937,7 +937,7 @@ func testRead(t *testing.T, newHarness HarnessMaker) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 		if skipCreate {
 			return b, func() { b.Close(); h.Close() }
 		}
@@ -991,7 +991,7 @@ func testRead(t *testing.T, newHarness HarnessMaker) {
 func testAttributes(t *testing.T, newHarness HarnessMaker) {
 	const (
 		dirKey             = "someDir"
-		key                = dirKey + "/blob-for-attributes"
+		key                = dirKey + "/genericstorage-for-attributes"
 		contentType        = "text/plain"
 		cacheControl       = "no-cache"
 		contentDisposition = "inline"
@@ -1002,7 +1002,7 @@ func testAttributes(t *testing.T, newHarness HarnessMaker) {
 
 	ctx := context.Background()
 
-	init := func(t *testing.T) (*blob.Bucket, func()) {
+	init := func(t *testing.T) (*genericstorage.Bucket, func()) {
 		h, err := newHarness(ctx, t)
 		if err != nil {
 			t.Fatal(err)
@@ -1011,8 +1011,8 @@ func testAttributes(t *testing.T, newHarness HarnessMaker) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := blob.NewBucket(drv)
-		opts := &blob.WriterOptions{
+		b := genericstorage.NewBucket(drv)
+		opts := &genericstorage.WriterOptions{
 			ContentType:        contentType,
 			CacheControl:       cacheControl,
 			ContentDisposition: contentDisposition,
@@ -1123,7 +1123,7 @@ func loadTestData(t testing.TB, name string) []byte {
 }
 
 func testWrite(t *testing.T, newHarness HarnessMaker) {
-	const key = "blob-for-reading"
+	const key = "genericstorage-for-reading"
 	const existingContent = "existing content"
 	smallText := loadTestData(t, "test-small.txt")
 	mediumHTML := loadTestData(t, "test-medium.html")
@@ -1149,11 +1149,11 @@ func testWrite(t *testing.T, newHarness HarnessMaker) {
 			wantReadErr: true,
 		},
 		{
-			name: "no write then close results in empty blob",
+			name: "no write then close results in empty genericstorage",
 			key:  key,
 		},
 		{
-			name: "no write then close results in empty blob, blob existed",
+			name: "no write then close results in empty genericstorage, genericstorage existed",
 			key:  key,
 		},
 		{
@@ -1189,7 +1189,7 @@ func testWrite(t *testing.T, newHarness HarnessMaker) {
 			wantErr:    true,
 		},
 		{
-			name:       "Content md5 did not match, blob existed",
+			name:       "Content md5 did not match, genericstorage existed",
 			exists:     true,
 			key:        key,
 			content:    []byte("not hello world"),
@@ -1239,7 +1239,7 @@ func testWrite(t *testing.T, newHarness HarnessMaker) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			b := blob.NewBucket(drv)
+			b := genericstorage.NewBucket(drv)
 			defer b.Close()
 
 			if tc.exists {
@@ -1251,7 +1251,7 @@ func testWrite(t *testing.T, newHarness HarnessMaker) {
 				}()
 			}
 
-			opts := &blob.WriterOptions{
+			opts := &genericstorage.WriterOptions{
 				ContentType: tc.contentType,
 				ContentMD5:  tc.contentMD5[:],
 			}
@@ -1314,7 +1314,7 @@ func testWrite(t *testing.T, newHarness HarnessMaker) {
 }
 
 func testCanceledWrite(t *testing.T, newHarness HarnessMaker) {
-	const key = "blob-for-canceled-write"
+	const key = "genericstorage-for-canceled-write"
 	content := []byte("hello world")
 	cancelContent := []byte("going to cancel")
 
@@ -1351,10 +1351,10 @@ func testCanceledWrite(t *testing.T, newHarness HarnessMaker) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			b := blob.NewBucket(drv)
+			b := genericstorage.NewBucket(drv)
 			defer b.Close()
 
-			opts := &blob.WriterOptions{
+			opts := &genericstorage.WriterOptions{
 				ContentType: test.contentType,
 			}
 
@@ -1412,7 +1412,7 @@ func testCanceledWrite(t *testing.T, newHarness HarnessMaker) {
 }
 
 func testMetadata(t *testing.T, newHarness HarnessMaker) {
-	const key = "blob-for-metadata"
+	const key = "genericstorage-for-metadata"
 	hello := []byte("hello")
 
 	weirdMetadata := map[string]string{}
@@ -1506,9 +1506,9 @@ func testMetadata(t *testing.T, newHarness HarnessMaker) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			b := blob.NewBucket(drv)
+			b := genericstorage.NewBucket(drv)
 			defer b.Close()
-			opts := &blob.WriterOptions{
+			opts := &genericstorage.WriterOptions{
 				Metadata:    tc.metadata,
 				ContentType: tc.contentType,
 			}
@@ -1536,7 +1536,7 @@ func testMetadata(t *testing.T, newHarness HarnessMaker) {
 func testMD5(t *testing.T, newHarness HarnessMaker) {
 	ctx := context.Background()
 
-	const aKey, bKey = "blob-for-md5-aaa", "blob-for-md5-bbb"
+	const aKey, bKey = "genericstorage-for-md5-aaa", "genericstorage-for-md5-bbb"
 	aContent, bContent := []byte("hello"), []byte("goodbye")
 	aMD5 := md5.Sum(aContent)
 	bMD5 := md5.Sum(bContent)
@@ -1550,7 +1550,7 @@ func testMD5(t *testing.T, newHarness HarnessMaker) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := blob.NewBucket(drv)
+	b := genericstorage.NewBucket(drv)
 	defer b.Close()
 
 	if err := b.WriteAll(ctx, aKey, aContent, nil); err != nil {
@@ -1578,7 +1578,7 @@ func testMD5(t *testing.T, newHarness HarnessMaker) {
 		t.Errorf("got MD5\n%x\nwant\n%x", bAttr.MD5, bMD5)
 	}
 
-	iter := b.List(&blob.ListOptions{Prefix: "blob-for-md5-"})
+	iter := b.List(&genericstorage.ListOptions{Prefix: "genericstorage-for-md5-"})
 	obj, err := iter.Next(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -1603,9 +1603,9 @@ func testMD5(t *testing.T, newHarness HarnessMaker) {
 
 func testCopy(t *testing.T, newHarness HarnessMaker) {
 	const (
-		srcKey             = "blob-for-copying-src"
-		dstKey             = "blob-for-copying-dest"
-		dstKeyExists       = "blob-for-copying-dest-exists"
+		srcKey             = "genericstorage-for-copying-src"
+		dstKey             = "genericstorage-for-copying-dest"
+		dstKeyExists       = "genericstorage-for-copying-dest-exists"
 		contentType        = "text/plain"
 		cacheControl       = "no-cache"
 		contentDisposition = "inline"
@@ -1625,7 +1625,7 @@ func testCopy(t *testing.T, newHarness HarnessMaker) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 		defer b.Close()
 
 		err = b.Copy(ctx, dstKey, "does-not-exist", nil)
@@ -1648,10 +1648,10 @@ func testCopy(t *testing.T, newHarness HarnessMaker) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 		defer b.Close()
 
-		wopts := &blob.WriterOptions{
+		wopts := &genericstorage.WriterOptions{
 			ContentType:        contentType,
 			CacheControl:       cacheControl,
 			ContentDisposition: contentDisposition,
@@ -1668,7 +1668,7 @@ func testCopy(t *testing.T, newHarness HarnessMaker) {
 			t.Fatal(err)
 		}
 
-		clearUncomparableFields := func(a *blob.Attributes) {
+		clearUncomparableFields := func(a *genericstorage.Attributes) {
 			a.CreateTime = time.Time{}
 			a.ModTime = time.Time{}
 			a.ETag = ""
@@ -1680,7 +1680,7 @@ func testCopy(t *testing.T, newHarness HarnessMaker) {
 		}
 
 		if err := b.Copy(ctx, dstKey, srcKey, nil); err != nil {
-			t.Errorf("got unexpected error copying blob: %v", err)
+			t.Errorf("got unexpected error copying genericstorage: %v", err)
 		}
 
 		got, err := b.ReadAll(ctx, dstKey)
@@ -1696,12 +1696,12 @@ func testCopy(t *testing.T, newHarness HarnessMaker) {
 			t.Fatal(err)
 		}
 		clearUncomparableFields(gotAttr)
-		if diff := cmp.Diff(gotAttr, wantAttr, cmpopts.IgnoreUnexported(blob.Attributes{})); diff != "" {
+		if diff := cmp.Diff(gotAttr, wantAttr, cmpopts.IgnoreUnexported(genericstorage.Attributes{})); diff != "" {
 			t.Errorf("got %v want %v diff %s", gotAttr, wantAttr, diff)
 		}
 
 		if err := b.Copy(ctx, dstKeyExists, srcKey, nil); err != nil {
-			t.Errorf("got unexpected error copying blob: %v", err)
+			t.Errorf("got unexpected error copying genericstorage: %v", err)
 		}
 
 		got, err = b.ReadAll(ctx, dstKeyExists)
@@ -1717,14 +1717,14 @@ func testCopy(t *testing.T, newHarness HarnessMaker) {
 			t.Fatal(err)
 		}
 		clearUncomparableFields(gotAttr)
-		if diff := cmp.Diff(gotAttr, wantAttr, cmpopts.IgnoreUnexported(blob.Attributes{})); diff != "" {
+		if diff := cmp.Diff(gotAttr, wantAttr, cmpopts.IgnoreUnexported(genericstorage.Attributes{})); diff != "" {
 			t.Errorf("got %v want %v diff %s", gotAttr, wantAttr, diff)
 		}
 	})
 }
 
 func testDelete(t *testing.T, newHarness HarnessMaker) {
-	const key = "blob-for-deleting"
+	const key = "genericstorage-for-deleting"
 
 	ctx := context.Background()
 	t.Run("NonExistentFails", func(t *testing.T) {
@@ -1737,7 +1737,7 @@ func testDelete(t *testing.T, newHarness HarnessMaker) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 		defer b.Close()
 
 		err = b.Delete(ctx, "does-not-exist")
@@ -1760,7 +1760,7 @@ func testDelete(t *testing.T, newHarness HarnessMaker) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 		defer b.Close()
 
 		if err := b.WriteAll(ctx, key, []byte("Hello world"), nil); err != nil {
@@ -1768,7 +1768,7 @@ func testDelete(t *testing.T, newHarness HarnessMaker) {
 		}
 
 		if err := b.Delete(ctx, key); err != nil {
-			t.Errorf("got unexpected error deleting blob: %v", err)
+			t.Errorf("got unexpected error deleting genericstorage: %v", err)
 		}
 
 		_, err = b.NewReader(ctx, key, nil)
@@ -1802,7 +1802,7 @@ func testConcurrentWriteAndRead(t *testing.T, newHarness HarnessMaker) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := blob.NewBucket(drv)
+	b := genericstorage.NewBucket(drv)
 	defer b.Close()
 
 	const numKeys = 20
@@ -1865,7 +1865,7 @@ func testKeys(t *testing.T, newHarness HarnessMaker) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := blob.NewBucket(drv)
+		b := genericstorage.NewBucket(drv)
 		defer b.Close()
 
 		key := keyPrefix + escape.NonUTF8String
@@ -1885,7 +1885,7 @@ func testKeys(t *testing.T, newHarness HarnessMaker) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			b := blob.NewBucket(drv)
+			b := genericstorage.NewBucket(drv)
 			defer b.Close()
 
 			key = keyPrefix + key
@@ -1943,7 +1943,7 @@ func testKeys(t *testing.T, newHarness HarnessMaker) {
 }
 
 func testSignedURL(t *testing.T, newHarness HarnessMaker) {
-	const key = "blob-for-signing"
+	const key = "genericstorage-for-signing"
 	const contents = "hello world"
 
 	ctx := context.Background()
@@ -1958,10 +1958,10 @@ func testSignedURL(t *testing.T, newHarness HarnessMaker) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := blob.NewBucket(drv)
+	b := genericstorage.NewBucket(drv)
 	defer b.Close()
 
-	_, err = b.SignedURL(ctx, key, &blob.SignedURLOptions{Expiry: -1 * time.Minute})
+	_, err = b.SignedURL(ctx, key, &genericstorage.SignedURLOptions{Expiry: -1 * time.Minute})
 	if err == nil {
 		t.Error("got nil error, expected error for negative SignedURLOptions.Expiry")
 	}
@@ -1987,7 +1987,7 @@ func testSignedURL(t *testing.T, newHarness HarnessMaker) {
 		allowedContentType   = "text/plain"
 		differentContentType = "application/octet-stream"
 	)
-	putURLWithContentType, err := b.SignedURL(ctx, key, &blob.SignedURLOptions{
+	putURLWithContentType, err := b.SignedURL(ctx, key, &genericstorage.SignedURLOptions{
 		Method:      http.MethodPut,
 		ContentType: allowedContentType,
 	})
@@ -1998,7 +1998,7 @@ func testSignedURL(t *testing.T, newHarness HarnessMaker) {
 	} else if putURLWithContentType == "" {
 		t.Fatal("got empty PUT url")
 	}
-	putURLEnforcedAbsentContentType, err := b.SignedURL(ctx, key, &blob.SignedURLOptions{
+	putURLEnforcedAbsentContentType, err := b.SignedURL(ctx, key, &genericstorage.SignedURLOptions{
 		Method:                   http.MethodPut,
 		EnforceAbsentContentType: true,
 	})
@@ -2009,7 +2009,7 @@ func testSignedURL(t *testing.T, newHarness HarnessMaker) {
 	} else if putURLEnforcedAbsentContentType == "" {
 		t.Fatal("got empty PUT url")
 	}
-	putURLWithoutContentType, err := b.SignedURL(ctx, key, &blob.SignedURLOptions{
+	putURLWithoutContentType, err := b.SignedURL(ctx, key, &genericstorage.SignedURLOptions{
 		Method: http.MethodPut,
 	})
 	if err != nil {
@@ -2017,7 +2017,7 @@ func testSignedURL(t *testing.T, newHarness HarnessMaker) {
 	} else if putURLWithoutContentType == "" {
 		t.Fatal("got empty PUT url")
 	}
-	deleteURL, err := b.SignedURL(ctx, key, &blob.SignedURLOptions{Method: http.MethodDelete})
+	deleteURL, err := b.SignedURL(ctx, key, &genericstorage.SignedURLOptions{Method: http.MethodDelete})
 	if err != nil {
 		t.Fatal(err)
 	} else if deleteURL == "" {
@@ -2159,14 +2159,14 @@ func testAs(t *testing.T, newHarness HarnessMaker, st AsTest) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := blob.NewBucket(drv)
+	b := genericstorage.NewBucket(drv)
 	defer b.Close()
 
 	if err := st.BucketCheck(b); err != nil {
 		t.Error(err)
 	}
 
-	if err := b.WriteAll(ctx, key, content, &blob.WriterOptions{BeforeWrite: st.BeforeWrite}); err != nil {
+	if err := b.WriteAll(ctx, key, content, &genericstorage.WriterOptions{BeforeWrite: st.BeforeWrite}); err != nil {
 		t.Error(err)
 	}
 	defer func() { _ = b.Delete(ctx, key) }()
@@ -2179,7 +2179,7 @@ func testAs(t *testing.T, newHarness HarnessMaker, st AsTest) {
 		t.Error(err)
 	}
 
-	r, err := b.NewReader(ctx, key, &blob.ReaderOptions{BeforeRead: st.BeforeRead})
+	r, err := b.NewReader(ctx, key, &genericstorage.ReaderOptions{BeforeRead: st.BeforeRead})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2188,7 +2188,7 @@ func testAs(t *testing.T, newHarness HarnessMaker, st AsTest) {
 		t.Error(err)
 	}
 
-	iter := b.List(&blob.ListOptions{Prefix: dir, Delimiter: "/", BeforeList: st.BeforeList})
+	iter := b.List(&genericstorage.ListOptions{Prefix: dir, Delimiter: "/", BeforeList: st.BeforeList})
 	found := false
 	for {
 		obj, err := iter.Next(ctx)
@@ -2207,7 +2207,7 @@ func testAs(t *testing.T, newHarness HarnessMaker, st AsTest) {
 		}
 	}
 
-	iter = b.List(&blob.ListOptions{Prefix: key, BeforeList: st.BeforeList})
+	iter = b.List(&genericstorage.ListOptions{Prefix: key, BeforeList: st.BeforeList})
 	found = false
 	for {
 		obj, err := iter.Next(ctx)
@@ -2234,23 +2234,23 @@ func testAs(t *testing.T, newHarness HarnessMaker, st AsTest) {
 		t.Error(err)
 	}
 
-	if err := b.Copy(ctx, copyKey, key, &blob.CopyOptions{BeforeCopy: st.BeforeCopy}); err != nil {
+	if err := b.Copy(ctx, copyKey, key, &genericstorage.CopyOptions{BeforeCopy: st.BeforeCopy}); err != nil {
 		t.Error(err)
 	} else {
 		defer func() { _ = b.Delete(ctx, copyKey) }()
 	}
 
 	for _, method := range []string{http.MethodGet, http.MethodPut, http.MethodDelete} {
-		_, err = b.SignedURL(ctx, key, &blob.SignedURLOptions{Method: method, BeforeSign: st.BeforeSign})
+		_, err = b.SignedURL(ctx, key, &genericstorage.SignedURLOptions{Method: method, BeforeSign: st.BeforeSign})
 		if err != nil && gcerrors.Code(err) != gcerrors.Unimplemented {
 			t.Errorf("got err %v when signing url with method %q", err, method)
 		}
 	}
 }
 
-func benchmarkRead(b *testing.B, bkt *blob.Bucket) {
+func benchmarkRead(b *testing.B, bkt *genericstorage.Bucket) {
 	ctx := context.Background()
-	const key = "readbenchmark-blob"
+	const key = "readbenchmark-genericstorage"
 
 	content := loadTestData(b, "test-large.jpg")
 	if err := bkt.WriteAll(ctx, key, content, nil); err != nil {
@@ -2274,9 +2274,9 @@ func benchmarkRead(b *testing.B, bkt *blob.Bucket) {
 	})
 }
 
-func benchmarkWriteReadDelete(b *testing.B, bkt *blob.Bucket) {
+func benchmarkWriteReadDelete(b *testing.B, bkt *genericstorage.Bucket) {
 	ctx := context.Background()
-	const baseKey = "writereaddeletebenchmark-blob-"
+	const baseKey = "writereaddeletebenchmark-genericstorage-"
 
 	content := loadTestData(b, "test-large.jpg")
 	var nextID uint32

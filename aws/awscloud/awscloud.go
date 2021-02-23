@@ -2,7 +2,7 @@ package awscloud
 
 import (
 	"genericstoragesdk/aws"
-	"genericstoragesdk/blob/s3blob"
+	"genericstoragesdk/genericstorage/s3blob"
 	"genericstoragesdk/server/xrayserver"
 	"github.com/google/wire"
 	"net/http"

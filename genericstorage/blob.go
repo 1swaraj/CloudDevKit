@@ -1,4 +1,4 @@
-package blob
+package genericstorage
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"genericstoragesdk/blob/driver"
+	"genericstoragesdk/genericstorage/driver"
 	"genericstoragesdk/gcerrors"
 	"genericstoragesdk/internal/gcerr"
 	"genericstoragesdk/internal/oc"
@@ -198,7 +198,7 @@ func (w *Writer) Close() (err error) {
 			if w.w != nil {
 				_ = w.w.Close()
 			}
-			return gcerr.Newf(gcerr.FailedPrecondition, nil, "blob: the WriterOptions.ContentMD5 you specified (%X) did not match what was written (%X)", w.contentMD5, md5sum)
+			return gcerr.Newf(gcerr.FailedPrecondition, nil, "genericstorage: the WriterOptions.ContentMD5 you specified (%X) did not match what was written (%X)", w.contentMD5, md5sum)
 		}
 	}
 
@@ -318,7 +318,7 @@ type Bucket struct {
 	closed bool
 }
 
-const pkgName = "genericstoragesdk/blob"
+const pkgName = "genericstoragesdk/genericstorage"
 
 var (
 	latencyMeasure      = oc.LatencyMeasure(pkgName)
@@ -400,7 +400,7 @@ func (b *Bucket) ListPage(ctx context.Context, pageToken []byte, pageSize int, o
 		opts = &ListOptions{}
 	}
 	if pageSize <= 0 {
-		return nil, nil, gcerr.Newf(gcerr.InvalidArgument, nil, "blob: pageSize must be > 0")
+		return nil, nil, gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: pageSize must be > 0")
 	}
 
 	if len(pageToken) == 0 {
@@ -477,7 +477,7 @@ func (b *Bucket) Exists(ctx context.Context, key string) (bool, error) {
 
 func (b *Bucket) Attributes(ctx context.Context, key string) (_ *Attributes, err error) {
 	if !utf8.ValidString(key) {
-		return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "blob: Attributes key must be a valid UTF-8 string: %q", key)
+		return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: Attributes key must be a valid UTF-8 string: %q", key)
 	}
 
 	b.mu.RLock()
@@ -531,10 +531,10 @@ func (b *Bucket) newRangeReader(ctx context.Context, key string, offset, length 
 		return nil, errClosed
 	}
 	if offset < 0 {
-		return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "blob: NewRangeReader offset must be non-negative (%d)", offset)
+		return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: NewRangeReader offset must be non-negative (%d)", offset)
 	}
 	if !utf8.ValidString(key) {
-		return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "blob: NewRangeReader key must be a valid UTF-8 string: %q", key)
+		return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: NewRangeReader key must be a valid UTF-8 string: %q", key)
 	}
 	if opts == nil {
 		opts = &ReaderOptions{}
@@ -568,7 +568,7 @@ func (b *Bucket) newRangeReader(ctx context.Context, key string, offset, length 
 			if ok {
 				caller = fmt.Sprintf(" (%s:%d)", file, lineno)
 			}
-			log.Printf("A blob.Reader reading from %q was never closed%s", key, caller)
+			log.Printf("A genericstorage.Reader reading from %q was never closed%s", key, caller)
 		}
 	})
 	return r, nil
@@ -596,7 +596,7 @@ func (b *Bucket) WriteAll(ctx context.Context, key string, p []byte, opts *Write
 
 func (b *Bucket) NewWriter(ctx context.Context, key string, opts *WriterOptions) (_ *Writer, err error) {
 	if !utf8.ValidString(key) {
-		return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "blob: NewWriter key must be a valid UTF-8 string: %q", key)
+		return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: NewWriter key must be a valid UTF-8 string: %q", key)
 	}
 	if opts == nil {
 		opts = &WriterOptions{}
@@ -615,17 +615,17 @@ func (b *Bucket) NewWriter(ctx context.Context, key string, opts *WriterOptions)
 		md := make(map[string]string, len(opts.Metadata))
 		for k, v := range opts.Metadata {
 			if k == "" {
-				return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "blob: WriterOptions.Metadata keys may not be empty strings")
+				return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: WriterOptions.Metadata keys may not be empty strings")
 			}
 			if !utf8.ValidString(k) {
-				return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "blob: WriterOptions.Metadata keys must be valid UTF-8 strings: %q", k)
+				return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: WriterOptions.Metadata keys must be valid UTF-8 strings: %q", k)
 			}
 			if !utf8.ValidString(v) {
-				return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "blob: WriterOptions.Metadata values must be valid UTF-8 strings: %q", v)
+				return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: WriterOptions.Metadata values must be valid UTF-8 strings: %q", v)
 			}
 			lowerK := strings.ToLower(k)
 			if _, found := md[lowerK]; found {
-				return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "blob: WriterOptions.Metadata has a duplicate case-insensitive metadata key: %q", lowerK)
+				return nil, gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: WriterOptions.Metadata has a duplicate case-insensitive metadata key: %q", lowerK)
 			}
 			md[lowerK] = v
 		}
@@ -680,7 +680,7 @@ func (b *Bucket) NewWriter(ctx context.Context, key string, opts *WriterOptions)
 			if ok {
 				caller = fmt.Sprintf(" (%s:%d)", file, lineno)
 			}
-			log.Printf("A blob.Writer writing to %q was never closed%s", key, caller)
+			log.Printf("A genericstorage.Writer writing to %q was never closed%s", key, caller)
 		}
 	})
 	return w, nil
@@ -688,10 +688,10 @@ func (b *Bucket) NewWriter(ctx context.Context, key string, opts *WriterOptions)
 
 func (b *Bucket) Copy(ctx context.Context, dstKey, srcKey string, opts *CopyOptions) (err error) {
 	if !utf8.ValidString(srcKey) {
-		return gcerr.Newf(gcerr.InvalidArgument, nil, "blob: Copy srcKey must be a valid UTF-8 string: %q", srcKey)
+		return gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: Copy srcKey must be a valid UTF-8 string: %q", srcKey)
 	}
 	if !utf8.ValidString(dstKey) {
-		return gcerr.Newf(gcerr.InvalidArgument, nil, "blob: Copy dstKey must be a valid UTF-8 string: %q", dstKey)
+		return gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: Copy dstKey must be a valid UTF-8 string: %q", dstKey)
 	}
 	if opts == nil {
 		opts = &CopyOptions{}
@@ -711,7 +711,7 @@ func (b *Bucket) Copy(ctx context.Context, dstKey, srcKey string, opts *CopyOpti
 
 func (b *Bucket) Delete(ctx context.Context, key string) (err error) {
 	if !utf8.ValidString(key) {
-		return gcerr.Newf(gcerr.InvalidArgument, nil, "blob: Delete key must be a valid UTF-8 string: %q", key)
+		return gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: Delete key must be a valid UTF-8 string: %q", key)
 	}
 	b.mu.RLock()
 	defer b.mu.RUnlock()
@@ -725,7 +725,7 @@ func (b *Bucket) Delete(ctx context.Context, key string) (err error) {
 
 func (b *Bucket) SignedURL(ctx context.Context, key string, opts *SignedURLOptions) (string, error) {
 	if !utf8.ValidString(key) {
-		return "", gcerr.Newf(gcerr.InvalidArgument, nil, "blob: SignedURL key must be a valid UTF-8 string: %q", key)
+		return "", gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: SignedURL key must be a valid UTF-8 string: %q", key)
 	}
 	dopts := new(driver.SignedURLOptions)
 	if opts == nil {
@@ -733,7 +733,7 @@ func (b *Bucket) SignedURL(ctx context.Context, key string, opts *SignedURLOptio
 	}
 	switch {
 	case opts.Expiry < 0:
-		return "", gcerr.Newf(gcerr.InvalidArgument, nil, "blob: SignedURLOptions.Expiry must be >= 0 (%v)", opts.Expiry)
+		return "", gcerr.Newf(gcerr.InvalidArgument, nil, "genericstorage: SignedURLOptions.Expiry must be >= 0 (%v)", opts.Expiry)
 	case opts.Expiry == 0:
 		dopts.Expiry = DefaultSignedURLExpiry
 	default:
@@ -745,13 +745,13 @@ func (b *Bucket) SignedURL(ctx context.Context, key string, opts *SignedURLOptio
 	case http.MethodGet, http.MethodPut, http.MethodDelete:
 		dopts.Method = opts.Method
 	default:
-		return "", fmt.Errorf("blob: unsupported SignedURLOptions.Method %q", opts.Method)
+		return "", fmt.Errorf("genericstorage: unsupported SignedURLOptions.Method %q", opts.Method)
 	}
 	if opts.ContentType != "" && opts.Method != http.MethodPut {
-		return "", fmt.Errorf("blob: SignedURLOptions.ContentType must be empty for signing a %s URL", opts.Method)
+		return "", fmt.Errorf("genericstorage: SignedURLOptions.ContentType must be empty for signing a %s URL", opts.Method)
 	}
 	if opts.EnforceAbsentContentType && opts.Method != http.MethodPut {
-		return "", fmt.Errorf("blob: SignedURLOptions.EnforceAbsentContentType must be false for signing a %s URL", opts.Method)
+		return "", fmt.Errorf("genericstorage: SignedURLOptions.EnforceAbsentContentType must be false for signing a %s URL", opts.Method)
 	}
 	dopts.ContentType = opts.ContentType
 	dopts.EnforceAbsentContentType = opts.EnforceAbsentContentType
@@ -831,7 +831,7 @@ func (mux *URLMux) BucketSchemes() []string { return mux.schemes.Schemes() }
 func (mux *URLMux) ValidBucketScheme(scheme string) bool { return mux.schemes.ValidScheme(scheme) }
 
 func (mux *URLMux) RegisterBucket(scheme string, opener BucketURLOpener) {
-	mux.schemes.Register("blob", "Bucket", scheme, opener)
+	mux.schemes.Register("genericstorage", "Bucket", scheme, opener)
 }
 
 func (mux *URLMux) OpenBucket(ctx context.Context, urlstr string) (*Bucket, error) {
@@ -887,7 +887,7 @@ func wrapError(b driver.Bucket, err error, key string) error {
 	if gcerr.DoNotWrap(err) {
 		return err
 	}
-	msg := "blob"
+	msg := "genericstorage"
 	if key != "" {
 		msg += fmt.Sprintf(" (key %q)", key)
 	}
@@ -898,7 +898,7 @@ func wrapError(b driver.Bucket, err error, key string) error {
 	return gcerr.New(code, err, 2, msg)
 }
 
-var errClosed = gcerr.Newf(gcerr.FailedPrecondition, nil, "blob: Bucket has been closed")
+var errClosed = gcerr.Newf(gcerr.FailedPrecondition, nil, "genericstorage: Bucket has been closed")
 
 func PrefixedBucket(bucket *Bucket, prefix string) *Bucket {
 	bucket.mu.Lock()

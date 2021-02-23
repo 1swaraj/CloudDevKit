@@ -23,8 +23,8 @@ import (
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 
-	"genericstoragesdk/blob"
-	"genericstoragesdk/blob/driver"
+	"genericstoragesdk/genericstorage"
+	"genericstoragesdk/genericstorage/driver"
 	"genericstoragesdk/gcerrors"
 	"genericstoragesdk/gcp"
 	"genericstoragesdk/internal/escape"
@@ -35,7 +35,7 @@ import (
 const defaultPageSize = 1000
 
 func init() {
-	blob.DefaultURLMux().RegisterBucket(Scheme, new(lazyCredsOpener))
+	genericstorage.DefaultURLMux().RegisterBucket(Scheme, new(lazyCredsOpener))
 }
 
 var Set = wire.NewSet(
@@ -81,7 +81,7 @@ type lazyCredsOpener struct {
 	err    error
 }
 
-func (o *lazyCredsOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bucket, error) {
+func (o *lazyCredsOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*genericstorage.Bucket, error) {
 	o.init.Do(func() {
 		var opts Options
 		var creds *google.Credentials
@@ -131,7 +131,7 @@ type URLOpener struct {
 	Options Options
 }
 
-func (o *URLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bucket, error) {
+func (o *URLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*genericstorage.Bucket, error) {
 	opts, err := o.forParams(ctx, u.Query())
 	if err != nil {
 		return nil, fmt.Errorf("open bucket %v: %v", u, err)
@@ -186,7 +186,7 @@ func openBucket(ctx context.Context, client *gcp.HTTPClient, bucketName string, 
 		return nil, errors.New("gcsblob.OpenBucket: bucketName is required")
 	}
 
-	clientOpts := []option.ClientOption{option.WithHTTPClient(useragent.HTTPClient(&client.Client, "blob"))}
+	clientOpts := []option.ClientOption{option.WithHTTPClient(useragent.HTTPClient(&client.Client, "genericstorage"))}
 	if host := os.Getenv("STORAGE_EMULATOR_HOST"); host != "" {
 		clientOpts = []option.ClientOption{
 			option.WithoutAuthentication(),
@@ -205,12 +205,12 @@ func openBucket(ctx context.Context, client *gcp.HTTPClient, bucketName string, 
 	return &bucket{name: bucketName, client: c, opts: opts}, nil
 }
 
-func OpenBucket(ctx context.Context, client *gcp.HTTPClient, bucketName string, opts *Options) (*blob.Bucket, error) {
+func OpenBucket(ctx context.Context, client *gcp.HTTPClient, bucketName string, opts *Options) (*genericstorage.Bucket, error) {
 	drv, err := openBucket(ctx, client, bucketName, opts)
 	if err != nil {
 		return nil, err
 	}
-	return blob.NewBucket(drv), nil
+	return genericstorage.NewBucket(drv), nil
 }
 
 type bucket struct {

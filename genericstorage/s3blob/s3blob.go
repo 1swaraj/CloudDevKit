@@ -15,8 +15,8 @@ import (
 	"sync"
 
 	gcaws "genericstoragesdk/aws"
-	"genericstoragesdk/blob"
-	"genericstoragesdk/blob/driver"
+	"genericstoragesdk/genericstorage"
+	"genericstoragesdk/genericstorage/driver"
 	"genericstoragesdk/gcerrors"
 	"genericstoragesdk/internal/escape"
 	"github.com/aws/aws-sdk-go/aws"
@@ -31,7 +31,7 @@ import (
 const defaultPageSize = 1000
 
 func init() {
-	blob.DefaultURLMux().RegisterBucket(Scheme, new(lazySessionOpener))
+	genericstorage.DefaultURLMux().RegisterBucket(Scheme, new(lazySessionOpener))
 }
 
 var Set = wire.NewSet(
@@ -44,7 +44,7 @@ type lazySessionOpener struct {
 	err    error
 }
 
-func (o *lazySessionOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bucket, error) {
+func (o *lazySessionOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*genericstorage.Bucket, error) {
 	o.init.Do(func() {
 		sess, err := gcaws.NewDefaultSession()
 		if err != nil {
@@ -69,7 +69,7 @@ type URLOpener struct {
 	Options Options
 }
 
-func (o *URLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bucket, error) {
+func (o *URLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*genericstorage.Bucket, error) {
 	configProvider := &gcaws.ConfigOverrider{
 		Base: o.ConfigProvider,
 	}
@@ -102,12 +102,12 @@ func openBucket(ctx context.Context, sess client.ConfigProvider, bucketName stri
 	}, nil
 }
 
-func OpenBucket(ctx context.Context, sess client.ConfigProvider, bucketName string, opts *Options) (*blob.Bucket, error) {
+func OpenBucket(ctx context.Context, sess client.ConfigProvider, bucketName string, opts *Options) (*genericstorage.Bucket, error) {
 	drv, err := openBucket(ctx, sess, bucketName, opts)
 	if err != nil {
 		return nil, err
 	}
-	return blob.NewBucket(drv), nil
+	return genericstorage.NewBucket(drv), nil
 }
 
 type reader struct {
