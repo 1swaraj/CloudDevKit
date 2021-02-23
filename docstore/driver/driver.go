@@ -3,7 +3,7 @@ package driver
 import (
 	"context"
 
-	"genericstoragesdk/gcerrors"
+	"github.com/swaraj1802/CloudDevKit/gcerrors"
 )
 
 type Collection interface {

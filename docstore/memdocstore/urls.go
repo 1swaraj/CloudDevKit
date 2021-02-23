@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"genericstoragesdk/docstore"
+	"github.com/swaraj1802/CloudDevKit/docstore"
 )
 
 func init() {

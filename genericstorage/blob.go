@@ -18,11 +18,11 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"genericstoragesdk/genericstorage/driver"
-	"genericstoragesdk/gcerrors"
-	"genericstoragesdk/internal/gcerr"
-	"genericstoragesdk/internal/oc"
-	"genericstoragesdk/internal/openurl"
+	"github.com/swaraj1802/CloudDevKit/genericstorage/driver"
+	"github.com/swaraj1802/CloudDevKit/gcerrors"
+	"github.com/swaraj1802/CloudDevKit/internal/gcerr"
+	"github.com/swaraj1802/CloudDevKit/internal/oc"
+	"github.com/swaraj1802/CloudDevKit/internal/openurl"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -318,7 +318,7 @@ type Bucket struct {
 	closed bool
 }
 
-const pkgName = "genericstoragesdk/genericstorage"
+const pkgName = "github.com/swaraj1802/CloudDevKit/genericstorage"
 
 var (
 	latencyMeasure      = oc.LatencyMeasure(pkgName)

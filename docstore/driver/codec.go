@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"strconv"
 
-	"genericstoragesdk/docstore/internal/fields"
-	"genericstoragesdk/internal/gcerr"
+	"github.com/swaraj1802/CloudDevKit/docstore/internal/fields"
+	"github.com/swaraj1802/CloudDevKit/internal/gcerr"
 	"github.com/golang/protobuf/proto"
 )
 

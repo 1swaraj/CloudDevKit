@@ -3,9 +3,9 @@ package driver
 import (
 	"reflect"
 
-	"genericstoragesdk/docstore/internal/fields"
-	"genericstoragesdk/gcerrors"
-	"genericstoragesdk/internal/gcerr"
+	"github.com/swaraj1802/CloudDevKit/docstore/internal/fields"
+	"github.com/swaraj1802/CloudDevKit/gcerrors"
+	"github.com/swaraj1802/CloudDevKit/internal/gcerr"
 )
 
 type Document struct {

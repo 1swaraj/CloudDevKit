@@ -5,8 +5,8 @@ import (
 	"os"
 
 	exporter "contrib.go.opencensus.io/exporter/aws"
-	"genericstoragesdk/server"
-	"genericstoragesdk/server/requestlog"
+	"github.com/swaraj1802/CloudDevKit/server"
+	"github.com/swaraj1802/CloudDevKit/server/requestlog"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/xray"
 	"github.com/aws/aws-sdk-go/service/xray/xrayiface"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"genericstoragesdk/internal/openurl"
+	"github.com/swaraj1802/CloudDevKit/internal/openurl"
 )
 
 type CollectionURLOpener interface {

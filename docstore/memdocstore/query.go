@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"genericstoragesdk/docstore/driver"
+	"github.com/swaraj1802/CloudDevKit/docstore/driver"
 )
 
 func (c *collection) RunGetQuery(_ context.Context, q *driver.Query) (driver.DocumentIterator, error) {

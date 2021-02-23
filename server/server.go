@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"genericstoragesdk/server/driver"
-	"genericstoragesdk/server/health"
-	"genericstoragesdk/server/requestlog"
+	"github.com/swaraj1802/CloudDevKit/server/driver"
+	"github.com/swaraj1802/CloudDevKit/server/health"
+	"github.com/swaraj1802/CloudDevKit/server/requestlog"
 	"github.com/google/wire"
 
 	"go.opencensus.io/plugin/ochttp"

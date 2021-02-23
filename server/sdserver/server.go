@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"genericstoragesdk/gcp"
-	"genericstoragesdk/internal/useragent"
-	"genericstoragesdk/server"
-	"genericstoragesdk/server/requestlog"
+	"github.com/swaraj1802/CloudDevKit/gcp"
+	"github.com/swaraj1802/CloudDevKit/internal/useragent"
+	"github.com/swaraj1802/CloudDevKit/server"
+	"github.com/swaraj1802/CloudDevKit/server/requestlog"
 	"github.com/google/wire"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"

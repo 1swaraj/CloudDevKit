@@ -1,4 +1,4 @@
-module genericstoragesdk
+module github.com/swaraj1802/CloudDevKit
 
 go 1.12
 
@@ -12,7 +12,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.4
-	github.com/google/subcommands v1.0.1
 	github.com/google/uuid v1.1.2
 	github.com/google/wire v0.5.0
 	github.com/googleapis/gax-go/v2 v2.0.5

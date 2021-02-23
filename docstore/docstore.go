@@ -12,10 +12,10 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"genericstoragesdk/docstore/driver"
-	"genericstoragesdk/gcerrors"
-	"genericstoragesdk/internal/gcerr"
-	"genericstoragesdk/internal/oc"
+	"github.com/swaraj1802/CloudDevKit/docstore/driver"
+	"github.com/swaraj1802/CloudDevKit/gcerrors"
+	"github.com/swaraj1802/CloudDevKit/internal/gcerr"
+	"github.com/swaraj1802/CloudDevKit/internal/oc"
 )
 
 type Document = interface{}
@@ -27,7 +27,7 @@ type Collection struct {
 	closed bool
 }
 
-const pkgName = "genericstoragesdk/docstore"
+const pkgName = "github.com/swaraj1802/CloudDevKit/docstore"
 
 var (
 	latencyMeasure = oc.LatencyMeasure(pkgName)

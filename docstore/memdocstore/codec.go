@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"time"
 
-	"genericstoragesdk/gcerrors"
+	"github.com/swaraj1802/CloudDevKit/gcerrors"
 
-	"genericstoragesdk/docstore/driver"
+	"github.com/swaraj1802/CloudDevKit/docstore/driver"
 )
 
 func encodeDoc(doc driver.Document) (storedDoc, error) {

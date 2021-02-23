@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"time"
 
-	"genericstoragesdk/docstore/driver"
-	"genericstoragesdk/internal/gcerr"
+	"github.com/swaraj1802/CloudDevKit/docstore/driver"
+	"github.com/swaraj1802/CloudDevKit/internal/gcerr"
 )
 
 type Query struct {

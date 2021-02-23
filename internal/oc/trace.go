@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"time"
 
-	"genericstoragesdk/gcerrors"
+	"github.com/swaraj1802/CloudDevKit/gcerrors"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 	"go.opencensus.io/trace"

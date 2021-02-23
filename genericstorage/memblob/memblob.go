@@ -14,9 +14,9 @@ import (
 	"sync"
 	"time"
 
-	"genericstoragesdk/genericstorage"
-	"genericstoragesdk/genericstorage/driver"
-	"genericstoragesdk/gcerrors"
+	"github.com/swaraj1802/CloudDevKit/genericstorage"
+	"github.com/swaraj1802/CloudDevKit/genericstorage/driver"
+	"github.com/swaraj1802/CloudDevKit/gcerrors"
 )
 
 const defaultPageSize = 1000

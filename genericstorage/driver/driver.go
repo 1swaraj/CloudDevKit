@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"genericstoragesdk/gcerrors"
+	"github.com/swaraj1802/CloudDevKit/gcerrors"
 )
 
 type ReaderOptions struct {

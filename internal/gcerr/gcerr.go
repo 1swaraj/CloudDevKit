@@ -6,7 +6,7 @@ import (
 	"io"
 	"reflect"
 
-	"genericstoragesdk/internal/retry"
+	"github.com/swaraj1802/CloudDevKit/internal/retry"
 	"golang.org/x/xerrors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -23,13 +23,13 @@ import (
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 
-	"genericstoragesdk/genericstorage"
-	"genericstoragesdk/genericstorage/driver"
-	"genericstoragesdk/gcerrors"
-	"genericstoragesdk/gcp"
-	"genericstoragesdk/internal/escape"
-	"genericstoragesdk/internal/gcerr"
-	"genericstoragesdk/internal/useragent"
+	"github.com/swaraj1802/CloudDevKit/genericstorage"
+	"github.com/swaraj1802/CloudDevKit/genericstorage/driver"
+	"github.com/swaraj1802/CloudDevKit/gcerrors"
+	"github.com/swaraj1802/CloudDevKit/gcp"
+	"github.com/swaraj1802/CloudDevKit/internal/escape"
+	"github.com/swaraj1802/CloudDevKit/internal/gcerr"
+	"github.com/swaraj1802/CloudDevKit/internal/useragent"
 )
 
 const defaultPageSize = 1000

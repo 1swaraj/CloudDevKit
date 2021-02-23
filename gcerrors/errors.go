@@ -3,7 +3,7 @@ package gcerrors
 import (
 	"context"
 
-	"genericstoragesdk/internal/gcerr"
+	"github.com/swaraj1802/CloudDevKit/internal/gcerr"
 	"golang.org/x/xerrors"
 )
 

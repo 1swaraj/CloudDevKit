@@ -9,12 +9,12 @@ import (
 	"os"
 
 	"github.com/google/subcommands"
-	"genericstoragesdk/genericstorage"
+	"github.com/swaraj1802/CloudDevKit/genericstorage"
 
 	// Import the genericstorage driver packages we want to be able to open.
-	_ "genericstoragesdk/genericstorage/fileblob"
-	_ "genericstoragesdk/genericstorage/gcsblob"
-	_ "genericstoragesdk/genericstorage/s3blob"
+	_ "github.com/swaraj1802/CloudDevKit/genericstorage/fileblob"
+	_ "github.com/swaraj1802/CloudDevKit/genericstorage/gcsblob"
+	_ "github.com/swaraj1802/CloudDevKit/genericstorage/s3blob"
 )
 
 func main() {
